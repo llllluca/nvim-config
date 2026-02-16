@@ -1,8 +1,9 @@
 -- https://gitlab.com/madyanov/gruber.vim
 
 vim.opt.termguicolors = true
-if vim.g.colors_name then vim.cmd('highlight clear') end
-vim.g.colors_name = nil
+if vim.g.colors_name then
+    vim.cmd('highlight clear')
+end
 vim.opt.background='dark'
 
 local black      = { gui="#1c1c1c" }
