@@ -163,6 +163,56 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end
 })
 
+
+vim.api.nvim_create_autocmd("FileType", {
+  desc = "Synctex search forward and backward for latex file",
+  pattern = "tex",
+  callback = function()
+    vim.keymap.set('n', 'ff',
+    function()
+        local find_synctex = function(dir)
+            local files = vim.fs.find(
+                function(name)
+                    -- matches .synctex or .synctex.gz
+                    return name:match("%.synctex")
+                end,
+                {
+                    path = dir,
+                    type = "file",
+                    -- stop at first match
+                    limit = 1,
+                })
+            if #files > 0 then
+                local filename = vim.fn.fnamemodify(files[1], ":t")
+                filename = filename:gsub("%..+$", "")
+                return filename .. '.pdf'
+            else
+                -- not found
+                return nil
+            end
+        end
+        -- full path of the file in the current buffer
+        local tex_file = vim.fn.expand('%:p')
+        local line = vim.fn.line('.')
+        -- full path of the directory of the file in the current buffer
+        local dir_path = vim.fn.expand('%:p:h')
+        local build = ""
+        local stat = vim.loop.fs_stat(dir_path)
+        if stat and stat.type == "directory" then
+            build = "build/"
+        end
+        pdf_file = find_synctex(dir_path .. '/' .. build)
+        if pdf_file == nil then
+            print("Cannot detect the pdf name!")
+            return
+        end
+        local backsearch_cmd = "nvim --server " .. vim.v.servername .. " --remote-send <Esc>:e\\ %{input}<CR>:%{line}<CR>"
+        local cmd = 'zathura --synctex-editor-command \"'.. backsearch_cmd ..'\" --synctex-forward '.. line ..':1:'.. tex_file ..' '.. build .. pdf_file
+        vim.fn.jobstart(cmd)
+    end)
+  end,
+})
+
 -- [[ netrw File Explorer ]] --
 
 vim.keymap.set('n', '<leader>e',
