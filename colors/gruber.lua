@@ -1,45 +1,26 @@
 -- https://gitlab.com/madyanov/gruber.vim
 
 vim.opt.termguicolors = true
-if vim.g.colors_name then
-    vim.cmd('highlight clear')
-end
-vim.opt.background='dark'
 
-local black      = { gui="#1c1c1c" }
-local lightblack = { gui="#262626" }
-local darkgray   = { gui="#444444" }
-local gray       = { gui="#626262" }
-local lightgray  = { gui="#989898" }
-local white      = { gui="#e4e4e4" }
-local red        = { gui="#ff5f5f" }
-local green      = { gui="#87d75f" }
-local yellow     = { gui="#ffd700" }
-local blue       = { gui="#87afd7" }
-local magenta    = { gui="#afafd7" }
-local cyan       = { gui="#afd7af" }
-local brown      = { gui="#af875f" }
+vim.opt.background = "dark"
+
+local black      = "#1c1c1c"
+local lightblack = "#262626"
+local darkgray   = "#444444"
+local gray       = "#626262"
+local lightgray  = "#989898"
+local white      = "#e4e4e4"
+local red        = "#ff5f5f"
+local green      = "#87d75f"
+local yellow     = "#ffd700"
+local blue       = "#87afd7"
+local magenta    = "#afafd7"
+local cyan       = "#afd7af"
+local brown      = "#af875f"
 -- local purple     = { gui="#c154c1" }
 
 local hi = function(group, args)
-  local command
-  if args.link ~= nil then
-    command = string.format('highlight! link %s %s', group, args.link)
-  else
-    command = string.format(
-      'highlight %s guifg=%s ctermfg=%s guibg=%s ctermbg=%s gui=%s cterm=%s guisp=%s blend=%s',
-      group,
-      args.fg and args.fg.gui or 'NONE',
-      args.fg and args.fg.cterm or 'NONE',
-      args.bg and args.bg.gui or 'NONE',
-      args.bg and args.bg.cterm or 'NONE',
-      args.attr or 'NONE',
-      args.attr or 'NONE',
-      args.sp and args.sp.gui or 'NONE',
-      args.blend or 'NONE'
-    )
-  end
-  vim.cmd(command)
+	vim.api.nvim_set_hl(0, group, args)
 end
 
 local constant   = { fg=white }
@@ -48,14 +29,13 @@ local special    = { fg=white }
 local operator   = { fg=white }
 local comment    = { fg=brown }
 local preproc    = { fg=cyan }
-local keyword    = { fg=yellow, attr="bold" }
-local _type       = { fg=lightgray }
+local keyword    = { fg=yellow, bold=true }
+local _type      = { fg=lightgray }
 local typedef    = { fg=white }
 local _function  = { fg=blue }
 local literal    = { fg=magenta }
 local string     = { fg=green }
 local char       = { fg=cyan }
--- local info       = { attr="italic" }
 
 -- Modes
 hi("Normal",      { fg=white, bg=black })
@@ -83,9 +63,9 @@ hi("Type",             _type)
 hi("Special",          special)
 hi("SpecialChar",      char)
 hi("SpecialComment",   comment)
-hi("Underlined",       { attr="underline" })
-hi("Ignore",           black)
-hi("Error",            red)
+hi("Underlined",       { underline=true })
+hi("Ignore",           { fg=black })
+hi("Error",            { fg=red })
 hi("Todo",             comment)
 hi("@type.definition", typedef)
 
@@ -97,7 +77,7 @@ hi("CursorIM",     { link="Cursor" })
 hi("TermCursor",   { link="Cursor" })
 hi("CursorLine",   { bg=lightblack })
 hi("CursorColumn", { link="CursorLine" })
-hi("CursorLineNr", { attr="bold" })
+hi("CursorLineNr", { bold=true })
 
 -- Line numbers
 hi("LineNr",     { fg=gray })
@@ -109,28 +89,28 @@ hi("StatusLineNC", { fg=gray, bg=lightblack })
 
 -- Search
 hi("Search",    { fg=white, bg=gray })
-hi("IncSearch", { fg=black, bg=yellow, attr="bold" })
+hi("IncSearch", { fg=black, bg=yellow, bold=true })
 hi("CurSearch", { link="IncSearch"})
 
 -- Completion
 hi("Pmenu",      { fg=white, bg=darkgray })
-hi("PmenuSel",   { fg=white, bg=gray, attr="bold" })
+hi("PmenuSel",   { fg=white, bg=gray, bold=true })
 hi("PmenuSBar",  { bg=darkgray })
 hi("PmenuThumb", { bg=gray })
-hi("WildMenu",   { fg=white, bg=gray, attr="bold" })
+hi("WildMenu",   { fg=white, bg=gray, bold=true })
 
 -- Tabs
 hi("TabLine",     { fg=gray, bg=lightblack })
 hi("TabLineFill", { link="TabLine" })
 
-hi("TabLineSel", { fg=white, attr="bold,italic" })
-hi("Title",      { fg=yellow, attr="bold" })
+hi("TabLineSel", { fg=white, bold=true, italic=true })
+hi("Title",      { fg=yellow, bold=true })
 
 -- Diff
 hi("DiffAdd",    { fg=black, bg=green })
 hi("DiffDelete", { fg=black, bg=red })
 hi("DiffChange", { fg=black, bg=blue })
-hi("DiffText",   { fg=black, bg=blue, attr="bold,italic" })
+hi("DiffText",   { fg=black, bg=blue, bold= true, italic=true })
 
 -- GitSigns
 hi("GitSignsAdd",    { fg=green })
@@ -138,7 +118,7 @@ hi("GitSignsDelete", { fg=red })
 hi("GitSignsChange", { fg=blue })
 
 -- Messages
-hi("ModeMsg",      { attr="bold" })
+hi("ModeMsg",      { bold=true })
 hi("MsgSeparator", { fg=gray })
 hi("ErrorMsg",     { fg=red })
 hi("WarningMsg",   { fg=yellow })
@@ -146,13 +126,13 @@ hi("MoreMsg",      { fg=green })
 hi("Question",     { fg=green })
 
 -- Spell
-hi("SpellBad",   { attr="underline" })
-hi("SpellCap",   { attr="underline" })
-hi("SpellLocal", { attr="undercurl" })
-hi("SpellRare",  { attr="underdotted" })
+hi("SpellBad",   { underline=true })
+hi("SpellCap",   { underline=true })
+hi("SpellLocal", { undercurl=true })
+hi("SpellRare",  { underdotted=true })
 
 -- Folding
-hi("Folded",     { fg=brown, bg=lightblack, attr="italic" })
+hi("Folded",     { fg=brown, bg=lightblack, italic=true })
 hi("FoldColumn", { fg=brown })
 
 -- Diagnostic
@@ -170,12 +150,12 @@ hi("VertSplit",    { fg=gray })
 hi("WinSeparator", { fg=gray })
 
 -- WinBar
-hi("WinBar",   { fg=magenta, style='bold' })
+hi("WinBar",   { fg=magenta, bold=true })
 hi("WinBarNC", { link="WinBar"})
 
 -- Misc
-hi("MatchParen",        { fg=yellow, attr="bold" })
-hi("QuickFixLine",      { bg=gray, attr="bold" })
+hi("MatchParen",        { fg=yellow, bold=true })
+hi("QuickFixLine",      { bg=gray, bold=true })
 hi("SpecialKey",        { fg=magenta })
 hi("Conceal",           { fg=magenta })
 hi("Directory",         { fg=blue })

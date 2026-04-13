@@ -4,6 +4,8 @@
 
 vim.cmd("colorscheme gruber")
 
+require('vim._core.ui2').enable()
+
 -- Set <space> as the leader key
 -- See `:help mapleader`
 vim.g.mapleader = ' '
@@ -31,8 +33,6 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 -- Display signs in the 'number' column
 vim.opt.signcolumn = 'number'
--- Decrease update time
--- vim.opt.updatetime = 250
 --splitting a window with :vsplit will put the new window right of the current one
 vim.opt.splitright = true
 -- splitting a window with :split will put the new window below the current one
@@ -46,8 +46,6 @@ vim.opt.scrolloff = 10
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
--- Use the appropriate number of spaces to insert a <Tab>
-vim.opt.expandtab = true
 --Number of spaces to use for each step of (auto)indent.  Used for >>, <<, etc.
 vim.opt.shiftwidth = 4
 -- Number of spaces that a <Tab> in the file counts for
@@ -58,8 +56,6 @@ vim.opt.smartindent = true
 vim.opt.shell="/bin/bash"
 -- String to be used to put the output of the ":make" command in the error file
 vim.opt.shellpipe="&>"
--- Show current dir statusline
-vim.opt.statusline='%<%f (%{expand("%:~:h")}) %h%w%m%r%=%-14.(%l,%c%V%) %P'
 
 -- [[ Autocommand ]] --
 
@@ -100,8 +96,8 @@ vim.api.nvim_create_autocmd({ "QuickFixCmdPost", "BufEnter" }, {
 
 vim.api.nvim_create_autocmd( 'FileType', {
     -- ':set filetype?' to see the filetype of the current buffer
-    pattern = { 'c', 'lua', 'markdown', 'vim' },
-    callback = function(args)
+    pattern = { 'c', 'cpp', 'lua', 'markdown', 'vim' },
+    callback = function()
         -- Highlight the current buffer with language taken from the current
         -- buffer file type. Parsers are searched for as parser/{lang}.so in
         -- any 'runtimepath' directory. ':set runtimepath?' to see the list
@@ -110,6 +106,7 @@ vim.api.nvim_create_autocmd( 'FileType', {
         -- (see /lib/nvim/parser/), additional parser can be install in
         -- ~/.config/nvim/parser/
         vim.treesitter.start()
+
     end
 })
 
@@ -163,54 +160,34 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end
 })
 
-
 vim.api.nvim_create_autocmd("FileType", {
-  desc = "Synctex search forward and backward for latex file",
-  pattern = "tex",
-  callback = function()
-    vim.keymap.set('n', 'ff',
-    function()
-        local find_synctex = function(dir)
-            local files = vim.fs.find(
-                function(name)
-                    -- matches .synctex or .synctex.gz
-                    return name:match("%.synctex")
-                end,
-                {
-                    path = dir,
-                    type = "file",
-                    -- stop at first match
-                    limit = 1,
-                })
-            if #files > 0 then
-                local filename = vim.fn.fnamemodify(files[1], ":t")
-                filename = filename:gsub("%..+$", "")
-                return filename .. '.pdf'
-            else
-                -- not found
-                return nil
+    desc = "Synctex search forward and backward for latex file",
+    pattern = "tex",
+    callback = function()
+        local get_pdf_file_path = function()
+            return vim.fn.input({
+                prompt = "Enter pdf file path: ",
+                default = "",
+                completion = "file",
+            })
+        end
+        vim.keymap.set('n', 'fp',
+        function()
+            vim.g.pdf_file_path = get_pdf_file_path()
+        end)
+        vim.keymap.set('n', 'ff',
+        function()
+            if not vim.g.pdf_file_path then
+                vim.g.pdf_file_path = get_pdf_file_path()
             end
-        end
-        -- full path of the file in the current buffer
-        local tex_file = vim.fn.expand('%:p')
-        local line = vim.fn.line('.')
-        -- full path of the directory of the file in the current buffer
-        local dir_path = vim.fn.expand('%:p:h')
-        local build = ""
-        local stat = vim.loop.fs_stat(dir_path)
-        if stat and stat.type == "directory" then
-            build = "build/"
-        end
-        pdf_file = find_synctex(dir_path .. '/' .. build)
-        if pdf_file == nil then
-            print("Cannot detect the pdf name!")
-            return
-        end
-        local backsearch_cmd = "nvim --server " .. vim.v.servername .. " --remote-send <Esc>:e\\ %{input}<CR>:%{line}<CR>"
-        local cmd = 'zathura --synctex-editor-command \"'.. backsearch_cmd ..'\" --synctex-forward '.. line ..':1:'.. tex_file ..' '.. build .. pdf_file
-        vim.fn.jobstart(cmd)
-    end)
-  end,
+            -- full path of the file in the current buffer
+            local tex_file = vim.fn.expand('%:p')
+            local line = vim.fn.line('.')
+            local backsearch_cmd = "nvim --server " .. vim.v.servername .. " --remote-send <Esc>:e\\ %{input}<CR>:%{line}<CR>"
+            local cmd = 'zathura --synctex-editor-command \"' .. backsearch_cmd ..'\" --synctex-forward ' .. line ..':1:'.. tex_file ..' '.. vim.g.pdf_file_path
+            vim.fn.jobstart(cmd)
+        end)
+    end,
 })
 
 -- [[ netrw File Explorer ]] --
@@ -263,7 +240,6 @@ vim.diagnostic.config(diagnostic_config)
 
 -- [[ Mappings ]] --
 
---vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float)
 vim.keymap.set('n', '<leader>d', vim.diagnostic.setloclist)
 
 -- Exit terminal mode with <Esc><Esc>
@@ -316,23 +292,27 @@ vim.keymap.set('n', '<Tab>', ':tabnext<CR>')
 -- Go to the previous tab page
 vim.keymap.set('n', '<S-Tab>', '<cmd> tabprev <CR>')
 
--- Go to the <n>st tab page
-vim.keymap.set('n', '<leader>1', '1gt')
-vim.keymap.set('n', '<leader>2', '2gt')
-vim.keymap.set('n', '<leader>3', '3gt')
-vim.keymap.set('n', '<leader>4', '4gt')
-vim.keymap.set('n', '<leader>5', '5gt')
-vim.keymap.set('n', '<leader>6', '6gt')
-vim.keymap.set('n', '<leader>7', '7gt')
-vim.keymap.set('n', '<leader>8', '8gt')
-vim.keymap.set('n', '<leader>9', '9gt')
+-- Go to the <n>st tab page or create it if doesn't exists
+local function goto_or_create_tab(tabidx)
+	local tabs = vim.fn.tabpagenr("$")
+	for i = 1, tabidx - tabs do
+    	vim.cmd("tabnew")
+	end
+	vim.cmd("tabnext " .. tabidx)
+end
 
--- Open a new tab page
-vim.keymap.set('n', 'tn', ':tabnew<CR>')
--- Close current tab page
-vim.keymap.set('n', 'tc', ':tabclose<CR>')
+vim.keymap.set('n', '<leader>1', function() goto_or_create_tab(1) end)
+vim.keymap.set('n', '<leader>2', function() goto_or_create_tab(2) end)
+vim.keymap.set('n', '<leader>3', function() goto_or_create_tab(3) end)
+vim.keymap.set('n', '<leader>4', function() goto_or_create_tab(4) end)
+vim.keymap.set('n', '<leader>5', function() goto_or_create_tab(5) end)
+vim.keymap.set('n', '<leader>6', function() goto_or_create_tab(6) end)
+vim.keymap.set('n', '<leader>7', function() goto_or_create_tab(7) end)
+vim.keymap.set('n', '<leader>8', function() goto_or_create_tab(8) end)
+vim.keymap.set('n', '<leader>9', function() goto_or_create_tab(9) end)
 
 -- [[ lsp config ]] --
+-- check lsp info: :checkhealth vim.lsp
 
 -- CCLS
 -- config:  https://github.com/neovim/nvim-lspconfig/blob/master/lsp/ccls.lua
