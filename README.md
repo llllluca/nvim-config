@@ -1,6 +1,6 @@
 # nvim config
 
-Single init.lua file config for nvim 0.11.* with good default options, LSP, treesitter and netrw configuration and custom gruber colorscheme
+Single init.lua file config for nvim 0.12.* with good default options, LSP, treesitter and netrw configuration and custom gruber colorscheme
 
 ## How to install
 

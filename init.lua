@@ -56,6 +56,7 @@ vim.opt.smartindent = true
 vim.opt.shell="/bin/bash"
 -- String to be used to put the output of the ":make" command in the error file
 vim.opt.shellpipe="&>"
+vim.opt.winborder="rounded"
 
 -- [[ Autocommand ]] --
 
@@ -317,6 +318,7 @@ vim.keymap.set('n', '<leader>9', function() goto_or_create_tab(9) end)
 -- CCLS
 -- config:  https://github.com/neovim/nvim-lspconfig/blob/master/lsp/ccls.lua
 -- install: https://github.com/MaskRay/ccls
+-- Create compile_commands.json: $cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
 
 local function switch_source_header(client, bufnr)
   local method_name = 'textDocument/switchSourceHeader'
